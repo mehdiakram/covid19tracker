@@ -1,0 +1,9 @@
+#selectContainer {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#countrySelect {
+    width: 50%;
+    margin: auto;
+}

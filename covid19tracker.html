@@ -9,7 +9,8 @@
         <title>Corona Tracker</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="">
+        <link rel="stylesheet" href="css/ct.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
         <script type="text/javascript" src="js/ct.js"></script>
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.js"></script>
     </head>
@@ -18,9 +19,9 @@
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
         
-        <div>
+        <div id="selectContainer">
             <form>
-                <select class="form-control" id="countrySelect" name="countrySelect" onchange="countrySearch()">
+                <select class="custom-select mb-3" id="countrySelect" name="countrySelect" onchange="countrySearch()">
                 </select>
             </form>
         </div>
