@@ -1,4 +1,4 @@
-const countryMap = new Map();
+
 var chart;
 var dates = [], cases = [], deaths = [];
 const chartType = "line";
@@ -12,28 +12,60 @@ window.onload = function() {
     //Calls function to draw the chart with no data in it - for now
     drawChart();
 
-    // get the list of countries tracked by the API populate the dropdown list with them
-    fetch(countryListURL)
-    .then((res) => res.json())
-    .then(function(countryData) {
+    // Add keyup event listener to the search element
+    var country_input = document.getElementById("countryName");
+    this.countryName.addEventListener("keyup", function(event){countryHinter(event)});
 
-        //get the element that will hold the country list to populate it
-        var countrySelect = document.getElementById("countrySelect");
+    //create global XHR object so we can abort requests easier
+    window.countryHinterXHR = new XMLHttpRequest();
 
-        //iterate through data returned in the response and create new items to be placed in the select element
-        //the display name will become the display text - the slug used for the next request will be the value
-        countryData.forEach(function(country){
-            if (country.Country != "") {
-                var countryItem = document.createElement("option");
-                countryItem.text = country.Country;
-                countryItem.value = country.Slug;
-                countryMap.set(country.Country, country.Slug);
-                countrySelect.appendChild(countryItem);
+}
+
+function countryHinter(event) {
+
+    //retrieve the input element
+    var input = event.target;
+
+    //retrieve the datalist element
+    var countrySearchList = document.getElementById("countrySearchList");
+
+    //Set a minimum number of characters before showing suggestions
+    var min_characters = 1;
+
+    // Ignore logic if user hasn't entered a letter yet
+    if (input.value.length < min_characters) {
+        return;
+    } else {
+
+        //abort pending requests
+        window.countryHinterXHR.abort();
+
+        window.countryHinterXHR.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+
+                // Convert JSON response toan object
+                var response = JSON.parse(this.responseText);
+
+                // clear old options in datalist
+                countrySearchList.innerHTML = "";
+
+                response.forEach(function(item) {
+                    // Create new <option> element
+                    var option = document.createElement("option");
+                    option.value = item.Slug;
+
+                    // Attach option to the datalist element
+                    countrySearchList.appendChild(option);
+                });
+
             }
-        });
-    }).catch(err => {
-        console.log(err);
-    })
+        };
+
+        window.countryHinterXHR.open("GET", "https://api.covid19api.com/countries", true);
+        window.countryHinterXHR.send()
+
+    }
+
 }
 
 function drawChart() {
@@ -82,8 +114,11 @@ function countrySearch() {
     dates =[], cases = [], deaths = [];
 
     // Get the element with the country list and grab the slug value that correponds 
-    var countrySelect = document.getElementById("countrySelect");
-    var countryName = countrySelect.options[countrySelect.selectedIndex].value;
+    // var countrySelect = document.getElementById("countrySelect");
+    var countrySelect = document.getElementById("countryName");
+    console.log("country name from autocomplete is " + countrySelect.value);
+    // var countryName = countrySelect.options[countrySelect.selectedIndex].value;
+    var countryName = countrySelect.value;
 
     // update the data source lists
     updateCases(countryName);
@@ -99,43 +134,55 @@ function countrySearch() {
 
 function updateCases(countryName) {
 
+    var casesXHR = new XMLHttpRequest();
+
     // make request to endpoint and get confirmed case statistics
-    fetch(countryCaseURL + countryName + countryCaseURLConfirmedSuffix)
-    .then((res) => res.json())
-    .then(function(countryStats) {
+    casesXHR.onreadystatechange = function() {
 
-        // update lists for dates and confirmed cases
-        countryStats.forEach(function(day){
-            // chop off the time part of the date values sine they're always 00:00:00
-            dates.push(day.Date.slice(0,10));
-            cases.push(day.Cases);
-        });
+        if (casesXHR.readyState !==4 ) return;
 
-        chart.update();
+        if (casesXHR.status >= 200 && casesXHR.status <300) {
 
-    }).catch(err => {
-        console.log(err);
-    });
+            // update lists for dates and confirmed cases
+            var response = JSON.parse(this.responseText);
+            response.forEach(day => {
+                // chop off the time part of the date values sine they're always 00:00:00
+                dates.push(day.Date.slice(0,10));
+                cases.push(day.Cases);
+            });
+
+            chart.update();
+        }
+
+    };
+    casesXHR.open("GET", countryCaseURL + countryName + countryCaseURLConfirmedSuffix, true);
+    casesXHR.send();
 
 }
 
 
 function updateDeaths(countryName) {
 
+    var deathsXHR = new XMLHttpRequest();
+
     // make request to endpoint and get death statistics 
-    fetch(countryCaseURL + countryName + countryCaseURLDeathSuffix)
-    .then((res) => res.json())
-    .then(function(countryDeaths) {
+    deathsXHR.onreadystatechange = function() {
 
-        // update list for deaths data
-        countryDeaths.forEach(function(day){
-            deaths.push(day.Cases);
-        });
+        if (deathsXHR.readyState !==4 ) return;
 
-        chart.update();
+        if (deathsXHR.status >= 200 && deathsXHR.status < 300) {
 
-    }).catch(err => {
-        console.log(err);
-    });
+            // update list for deaths data
+            var response = JSON.parse(this.responseText);
+            response.forEach(day => {
+                deaths.push(day.Cases);
+            });
+
+            chart.update();
+        }
+    };
+
+    deathsXHR.open("GET", countryCaseURL + countryName + countryCaseURLDeathSuffix, true);
+    deathsXHR.send();
 
 }

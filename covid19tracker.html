@@ -19,14 +19,14 @@
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
         
-        <div id="selectContainer">
-            <form>
-                <select class="custom-select mb-3" id="countrySelect" name="countrySelect" onchange="countrySearch()">
-                </select>
+        <div id="searchContainer">
+            <form autocomplete="off">
+                <input type="search" placeholder="Search for a country..." name="countryName" id="countryName" list="countrySearchList" onchange="countrySearch()">
+                <datalist id="countrySearchList">
+
+                </datalist>
             </form>
         </div>
-        
-
 
         <canvas id="coronaChart"></canvas>
         
